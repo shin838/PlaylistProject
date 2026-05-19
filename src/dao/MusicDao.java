@@ -31,7 +31,7 @@ public class MusicDao {
             pstmt.setString(idx++, music.getTitle());
             pstmt.setString(idx++, music.getArtist());
             pstmt.setString(idx++, music.getGenre());
-            pstmt.setInt(idx++, music.getPlayTime());
+            pstmt.setString(idx++, music.getPlayTime());
 
             pstmt.executeUpdate();
 
@@ -67,7 +67,7 @@ public class MusicDao {
                 music.setTitle(rs.getString("title"));
                 music.setArtist(rs.getString("artist"));
                 music.setGenre(rs.getString("genre"));
-                music.setPlayTime(rs.getInt("play_time"));
+                music.setPlayTime(rs.getString("play_time"));
 
                 list.add(music);
             }
@@ -109,7 +109,7 @@ public class MusicDao {
                 music.setTitle(rs.getString("title"));
                 music.setArtist(rs.getString("artist"));
                 music.setGenre(rs.getString("genre"));
-                music.setPlayTime(rs.getInt("play_time"));
+                music.setPlayTime(rs.getString("play_time"));
 
                 return music;
             }
@@ -144,7 +144,7 @@ public class MusicDao {
             pstmt.setString(idx++, music.getTitle());
             pstmt.setString(idx++, music.getArtist());
             pstmt.setString(idx++, music.getGenre());
-            pstmt.setInt(idx++, music.getPlayTime());
+            pstmt.setString(idx++, music.getPlayTime());
             pstmt.setInt(idx++, music.getMusicId());
 
             pstmt.executeUpdate();
