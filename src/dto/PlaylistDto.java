@@ -5,12 +5,15 @@ public class PlaylistDto {
     private int userId;
     private String playlistName;
 
-    public PlaylistDto() {}
+    public PlaylistDto() {
+    }
+
     public PlaylistDto(int playlistId, int userId, String playlistName) {
         this.playlistId = playlistId;
         this.userId = userId;
         this.playlistName = playlistName;
     }
+
     public int getPlaylistId() {
         return playlistId;
     }
@@ -34,8 +37,11 @@ public class PlaylistDto {
     public void setPlaylistName(String playlistName) {
         this.playlistName = playlistName;
     }
+
     @Override
     public String toString() {
-        return "playlistId=" + playlistId + ", userId=" + userId + ", playlistName=" + playlistName;
+        return "PlaylistDto [playlistId=" + playlistId 
+                + ", userId=" + userId 
+                + ", playlistName=" + playlistName + "]";
     }
 }
