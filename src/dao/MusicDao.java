@@ -3,180 +3,90 @@ package dao;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
 import dto.MusicDto;
 import util.DBUtil;
 
 public class MusicDao {
+    private DBUtil dbutil = DBUtil.getInstance();
 
-    private DBUtil dbUtil = DBUtil.getInstance();
-
-    // 음악 추가
     public void addMusic(MusicDto music) throws SQLException {
-
         Connection con = null;
-        PreparedStatement pstmt = null;
-
+        PreparedStatement stmt = null;
         try {
-            con = dbUtil.getConnection();
-
-            String sql = """
-                    insert into music(title, artist, genre, play_time)
-                    values (?, ?, ?, ?)
-                    """;
-
-            pstmt = con.prepareStatement(sql);
-
-            int idx = 1;
-            pstmt.setString(idx++, music.getTitle());
-            pstmt.setString(idx++, music.getArtist());
-            pstmt.setString(idx++, music.getGenre());
-            pstmt.setString(idx++, music.getPlayTime());
-
-            pstmt.executeUpdate();
-
+            con = dbutil.getConnection();
+            String sql = " INSERT INTO music(title, artist, genre, play_time) VALUES(?,?,?,?) ";
+            stmt = con.prepareStatement(sql);
+            stmt.setString(1, music.getTitle());
+            stmt.setString(2, music.getArtist());
+            stmt.setString(3, music.getGenre());
+            stmt.setString(4, music.getPlayTime());
+            stmt.executeUpdate();
         } finally {
-            dbUtil.close(pstmt, con);
+            dbutil.close(stmt, con);
         }
     }
 
-    // 음악 전체 조회
-    public List<MusicDto> getAllMusic() throws SQLException {
-
-        List<MusicDto> list = new ArrayList<>();
-
+    public List<MusicDto> searchAllMusic() throws SQLException {
         Connection con = null;
-        PreparedStatement pstmt = null;
+        PreparedStatement stmt = null;
         ResultSet rs = null;
-
+        List<MusicDto> list = new ArrayList<>();
         try {
-
-            con = dbUtil.getConnection();
-
-            String sql = "select * from music";
-
-            pstmt = con.prepareStatement(sql);
-
-            rs = pstmt.executeQuery();
-
-            while(rs.next()) {
-
+            con = dbutil.getConnection();
+            String sql = " SELECT music_id, title, artist, genre, play_time FROM music ";
+            stmt = con.prepareStatement(sql);
+            rs = stmt.executeQuery();
+            while (rs.next()) {
                 MusicDto music = new MusicDto();
-
                 music.setMusicId(rs.getInt("music_id"));
                 music.setTitle(rs.getString("title"));
                 music.setArtist(rs.getString("artist"));
                 music.setGenre(rs.getString("genre"));
                 music.setPlayTime(rs.getString("play_time"));
-
                 list.add(music);
             }
-
         } finally {
-            dbUtil.close(rs, pstmt, con);
+            dbutil.close(rs, stmt, con);
         }
-
         return list;
     }
 
-    // 음악 단일 조회
-    public MusicDto searchMusic(int musicId) throws SQLException {
-
-        Connection con = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-
-        try {
-
-            con = dbUtil.getConnection();
-
-            String sql = """
-                    select *
-                    from music
-                    where music_id = ?
-                    """;
-
-            pstmt = con.prepareStatement(sql);
-            pstmt.setInt(1, musicId);
-
-            rs = pstmt.executeQuery();
-
-            if(rs.next()) {
-
-                MusicDto music = new MusicDto();
-
-                music.setMusicId(rs.getInt("music_id"));
-                music.setTitle(rs.getString("title"));
-                music.setArtist(rs.getString("artist"));
-                music.setGenre(rs.getString("genre"));
-                music.setPlayTime(rs.getString("play_time"));
-
-                return music;
-            }
-
-        } finally {
-            dbUtil.close(rs, pstmt, con);
-        }
-
-        return null;
-    }
-
-    // 음악 수정
     public void updateMusic(MusicDto music) throws SQLException {
-
         Connection con = null;
-        PreparedStatement pstmt = null;
-
+        PreparedStatement stmt = null;
         try {
-
-            con = dbUtil.getConnection();
-
-            String sql = """
-                    update music
-                    set title = ?, artist = ?, genre = ?, play_time = ?
-                    where music_id = ?
-                    """;
-
-            pstmt = con.prepareStatement(sql);
-
-            int idx = 1;
-
-            pstmt.setString(idx++, music.getTitle());
-            pstmt.setString(idx++, music.getArtist());
-            pstmt.setString(idx++, music.getGenre());
-            pstmt.setString(idx++, music.getPlayTime());
-            pstmt.setInt(idx++, music.getMusicId());
-
-            pstmt.executeUpdate();
-
+            con = dbutil.getConnection();
+            String sql = " UPDATE music SET title=?, artist=?, genre=?, play_time=? WHERE music_id=? ";
+            stmt = con.prepareStatement(sql);
+            stmt.setString(1, music.getTitle());
+            stmt.setString(2, music.getArtist());
+            stmt.setString(3, music.getGenre());
+            stmt.setString(4, music.getPlayTime());
+            stmt.setInt(5, music.getMusicId());
+            stmt.executeUpdate();
         } finally {
-            dbUtil.close(pstmt, con);
+            dbutil.close(stmt, con);
         }
     }
 
-    // 음악 삭제
-    public void deleteMusic(int musicId) throws SQLException {
-
+    public void removeMusic(int musicId) throws SQLException {
         Connection con = null;
-        PreparedStatement pstmt = null;
-
+        PreparedStatement stmt = null;
         try {
+            con = dbutil.getConnection();
+            // 연결된 플레이리스트 기록 먼저 삭제 (외래키 제약조건 방지)
+            String delPmSql = " DELETE FROM playlist_music WHERE music_id = ? ";
+            stmt = con.prepareStatement(delPmSql);
+            stmt.setInt(1, musicId);
+            stmt.executeUpdate();
+            stmt.close();
 
-            con = dbUtil.getConnection();
-
-            String sql = """
-                    delete from music
-                    where music_id = ?
-                    """;
-
-            pstmt = con.prepareStatement(sql);
-
-            pstmt.setInt(1, musicId);
-
-            pstmt.executeUpdate();
-
+            String sql = " DELETE FROM music WHERE music_id = ? ";
+            stmt = con.prepareStatement(sql);
+            stmt.setInt(1, musicId);
+            stmt.executeUpdate();
         } finally {
-            dbUtil.close(pstmt, con);
+            dbutil.close(stmt, con);
         }
     }
 }

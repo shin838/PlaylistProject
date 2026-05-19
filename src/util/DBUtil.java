@@ -2,43 +2,41 @@ package util;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class DBUtil {
-	//jdk 11버전부터 mysql-connector-java-8.0.13이상 연결시 useSSL=true로 되어 있어 close 시 오류 발생 
-	//useSSL=false로 설정해야 close시 오류가 발생하지 않는다.
-	static final String URL ="jdbc:mysql://localhost:3306/playlistdb?serverTimezone=UTC&useUniCode=yes&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true";
-	static final String DRIVER="com.mysql.cj.jdbc.Driver";
-	static final String ID="ureca";
-	static final String PW="ureca";
-	private static DBUtil instance = new DBUtil();
-	private DBUtil() {
-		try {
-			Class.forName(DRIVER);
-		}catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	public static DBUtil getInstance() {
-		return instance;
-	}
-	public Connection getConnection() throws SQLException {
-		return DriverManager.getConnection(URL, ID, PW);
-	}
-	public void close(AutoCloseable ... acs) {
-		for (AutoCloseable  c: acs) {
-			if(c != null) {
-				try {
-					c.close();
-				} catch (Exception e) {
-					//e.printStackTrace();
-				}
-			}
-		}
-	}
+    private static DBUtil instance = new DBUtil();
+    
+    // DB 설정 (포트번호와 DB명, 계정/비번 확인 필수)
+    private String url = "jdbc:mysql://localhost:3306/playlistdb?serverTimezone=UTC&useSSL=false";
+    private String user = "ureca"; 
+    private String pass = "ureca";
+
+    private DBUtil() {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static DBUtil getInstance() {
+        return instance;
+    }
+
+    public Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(url, user, pass);
+    }
+
+    public void close(PreparedStatement stmt, Connection con) {
+        try { if (stmt != null) stmt.close(); } catch (SQLException e) { }
+        try { if (con != null) con.close(); } catch (SQLException e) { }
+    }
+
+    public void close(ResultSet rs, PreparedStatement stmt, Connection con) {
+        try { if (rs != null) rs.close(); } catch (SQLException e) { }
+        close(stmt, con);
+    }
 }
-
-
-
-
-
