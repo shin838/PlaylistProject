@@ -1,6 +1,8 @@
 package main;
 
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.util.List;
 import javax.swing.*;
@@ -32,6 +34,7 @@ public class Main {
         }
 
         try {
+            // OS 기본 디자인 적용
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {}
 
@@ -43,56 +46,114 @@ public class Main {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(900, 650); 
         frame.setLocationRelativeTo(null);
+        // 메인 프레임 배경색을 다크 톤으로 설정
+        frame.getContentPane().setBackground(new Color(18, 18, 18));
 
         cardLayout = new CardLayout();
         mainCardPanel = new JPanel(cardLayout);
 
+        // 생성한 패널들을 CardLayout에 등록
         mainCardPanel.add(createHomePanel(), "HOME");
         mainCardPanel.add(createMusicPanel(), "MUSIC");
         mainCardPanel.add(createCombinedPlaylistPanel(), "PLAYLIST");
         mainCardPanel.add(createUserPanel(), "USER");
+        mainCardPanel.add(createPlaceholderPanel("🔥 HOT 5 화면 준비 중..."), "HOT5"); // HOT 5 화면 등록
 
         frame.add(mainCardPanel);
         frame.setVisible(true);
     }
 
-    // ==========================================
-    // 1. [홈 화면] 패널 생성
+ // ==========================================
+    // 1. [홈 화면] 패널 생성 (화이트 아이콘 적용)
     // ==========================================
     private static JPanel createHomePanel() {
         JPanel homePanel = new JPanel(new BorderLayout());
-        homePanel.setBackground(new Color(245, 246, 250));
+        homePanel.setBackground(new Color(18, 18, 18)); // 스포티파이 느낌의 다크 배경
 
+        // [상단] 타이틀 배너 구역
         JPanel titlePanel = new JPanel();
-        titlePanel.setBackground(new Color(41, 128, 185));
-        titlePanel.setBorder(new EmptyBorder(30, 0, 30, 0));
-        JLabel titleLabel = new JLabel("플레이리스트 관리 프로그램");
-        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 28));
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
+        titlePanel.setBackground(new Color(18, 18, 18));
+        titlePanel.setBorder(new EmptyBorder(60, 0, 30, 0));
+
+        JLabel subLabel = new JLabel("Your Personal Music Studio");
+        subLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        subLabel.setForeground(new Color(179, 179, 179)); // 연한 회색
+        subLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel titleLabel = new JLabel("🎵 Playlist Management");
+        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 36));
         titleLabel.setForeground(Color.WHITE);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        titlePanel.add(subLabel);
+        titlePanel.add(Box.createRigidArea(new Dimension(0, 5)));
         titlePanel.add(titleLabel);
 
-        JPanel menuPanel = new JPanel(new GridLayout(2, 2, 20, 20));
-        menuPanel.setBorder(new EmptyBorder(50, 50, 50, 50));
+        // [중앙] 카드형 메뉴 버튼 구역
+        JPanel menuPanel = new JPanel(new GridLayout(2, 2, 25, 25));
+        menuPanel.setBorder(new EmptyBorder(10, 80, 80, 80));
         menuPanel.setOpaque(false);
 
-        JButton btnMusic = createButton("🎧 음악 관리");
-        JButton btnPlaylist = createButton("📁 플레이리스트 관리");
-        JButton btnUser = createButton("👤 회원 관리");
+        // 이모지 대신 색상 변경이 가능한 특수기호 사용
+        JButton btnMusic = createMenuCard("♫", "음악 관리", "새로운 곡을 추가하고 수정하세요");
+        JButton btnPlaylist = createMenuCard("▤", "플레이리스트", "나만의 취향을 담은 리스트 관리");
+        JButton btnUser = createMenuCard("☻", "회원 관리", "이용자 정보를 등록하고 관리합니다");
+        JButton btnHot5 = createMenuCard("★", "HOT 5", "가장 인기있는 트랙 랭킹 TOP 5");
 
+        // 화면 이동 이벤트
         btnMusic.addActionListener(e -> cardLayout.show(mainCardPanel, "MUSIC"));
         btnPlaylist.addActionListener(e -> cardLayout.show(mainCardPanel, "PLAYLIST"));
         btnUser.addActionListener(e -> cardLayout.show(mainCardPanel, "USER"));
+        btnHot5.addActionListener(e -> cardLayout.show(mainCardPanel, "HOT5")); 
 
         menuPanel.add(btnMusic);
         menuPanel.add(btnPlaylist);
         menuPanel.add(btnUser);
-        menuPanel.add(new JPanel());
+        menuPanel.add(btnHot5);
 
         homePanel.add(titlePanel, BorderLayout.NORTH);
         homePanel.add(menuPanel, BorderLayout.CENTER);
 
         return homePanel;
     }
+
+    // ==========================================
+    // [UI 헬퍼] 카드 형태의 고급스러운 버튼을 만드는 메서드 (아이콘 화이트 설정)
+    // ==========================================
+    private static JButton createMenuCard(String icon, String title, String desc) {
+        // 아이콘(<p> 태그) 부분에 color: white; 를 강제로 부여했습니다.
+        String html = "<html><div style='text-align: center; padding: 10px;'>"
+                    + "<p style='font-size: 36px; margin-bottom: 5px; color: white;'>" + icon + "</p>"
+                    + "<p style='font-size: 18px; font-family: 맑은 고딕; font-weight: bold; color: white; margin: 0;'>" + title + "</p>"
+                    + "<p style='font-size: 11px; font-family: 맑은 고딕; color: #B3B3B3; margin-top: 8px;'>" + desc + "</p>"
+                    + "</div></html>";
+        
+        JButton button = new JButton(html);
+        button.setBackground(new Color(35, 35, 35)); // 다크 그레이 카드
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // 마우스 호버(Hover) 효과 - 올리면 밝아짐
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                button.setBackground(new Color(55, 55, 55)); 
+            }
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                button.setBackground(new Color(35, 35, 35));
+            }
+        });
+        
+        return button;
+    }
+
+
+    /* =========================================================================
+       여기서부터 아래는 기존에 정상 작동하던 사용자 작성 코드입니다. 그대로 유지했습니다. 
+       ========================================================================= */
 
     // ==========================================
     // 2. [음악 관리] 패널 생성 (CRUD 연동 완료)
@@ -137,7 +198,6 @@ public class Main {
         JButton btnUpdate = new JButton("수정");
         JButton btnDelete = new JButton("삭제");
 
-        // 테이블 행 클릭 시 입력칸으로 데이터 복사
         table.getSelectionModel().addListSelectionListener(e -> {
             int row = table.getSelectedRow();
             if (!e.getValueIsAdjusting() && row != -1) {
@@ -166,7 +226,7 @@ public class Main {
                 m.setGenre(txtGenre.getText()); m.setPlayTime(txtTime.getText());
                 musicDao.addMusic(m);
                 JOptionPane.showMessageDialog(panel, "추가 완료");
-                btnSelect.doClick(); // 새로고침
+                btnSelect.doClick(); 
             } catch (Exception ex) { ex.printStackTrace(); }
         });
 
@@ -206,7 +266,7 @@ public class Main {
     }
 
     // ==========================================
-    // 3. [플레이리스트 통합 관리] 패널 생성 (연동 완료)
+    // 3. [플레이리스트 통합 관리] 패널 생성
     // ==========================================
     private static JPanel createCombinedPlaylistPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
@@ -340,170 +400,140 @@ public class Main {
 
         return panel;
     }
-    
-	 // ==========================================
-	 // 4. [회원 관리] 패널 생성
-	 // ==========================================
-	 private static JPanel createUserPanel() {
-	     JPanel panel = new JPanel(new BorderLayout(10, 10));
-	     panel.setBorder(new EmptyBorder(10, 10, 10, 10));
-	
-	     UserService userService = new UserServiceImp();
-	
-	     JPanel topPanel = new JPanel(new BorderLayout());
-	     JLabel titleLabel = new JLabel("회원 관리");
-	     titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 20));
-	
-	     JButton btnHome = new JButton("홈으로");
-	     btnHome.addActionListener(e -> cardLayout.show(mainCardPanel, "HOME"));
-	
-	     topPanel.add(titleLabel, BorderLayout.WEST);
-	     topPanel.add(btnHome, BorderLayout.EAST);
-	
-	     JPanel centerPanel = new JPanel(new GridBagLayout());
-	     GridBagConstraints gbc = new GridBagConstraints();
-	     gbc.insets = new Insets(8, 8, 8, 8);
-	     gbc.fill = GridBagConstraints.HORIZONTAL;
-	
-	     JTextField txtUserId = new JTextField(15);
-	     JTextField txtEmail = new JTextField(20);
-	     JTextField txtName = new JTextField(20);
-	
-	     txtUserId.setEnabled(false);
-	
-	     gbc.gridx = 0;
-	     gbc.gridy = 0;
-	     centerPanel.add(new JLabel("회원 ID:"), gbc);
-	
-	     gbc.gridx = 1;
-	     centerPanel.add(txtUserId, gbc);
-	
-	     gbc.gridx = 0;
-	     gbc.gridy = 1;
-	     centerPanel.add(new JLabel("이메일:"), gbc);
-	
-	     gbc.gridx = 1;
-	     centerPanel.add(txtEmail, gbc);
-	
-	     gbc.gridx = 0;
-	     gbc.gridy = 2;
-	     centerPanel.add(new JLabel("이름:"), gbc);
-	
-	     gbc.gridx = 1;
-	     centerPanel.add(txtName, gbc);
-	
-	     JPanel btnPanel = new JPanel(new FlowLayout());
-	
-	     JButton btnAdd = new JButton("회원등록");
-	     JButton btnSearch = new JButton("이메일 조회");
-	     JButton btnUpdate = new JButton("회원수정");
-	     JButton btnDelete = new JButton("회원삭제");
-	     JButton btnClear = new JButton("입력 초기화");
-	
-	     btnPanel.add(btnAdd);
-	     btnPanel.add(btnSearch);
-	     btnPanel.add(btnUpdate);
-	     btnPanel.add(btnDelete);
-	     btnPanel.add(btnClear);
-	
-	     btnAdd.addActionListener(e -> {
-	         try {
-	             UserDto user = new UserDto();
-	             user.setEmail(txtEmail.getText());
-	             user.setName(txtName.getText());
-	
-	             userService.add(user);
-	
-	             JOptionPane.showMessageDialog(panel, "회원등록 완료");
-	
-	             UserDto savedUser = userService.searchByEmail(user.getEmail());
-	             txtUserId.setText(String.valueOf(savedUser.getUserId()));
-	             txtEmail.setText(savedUser.getEmail());
-	             txtName.setText(savedUser.getName());
-	
-	         } catch (Exception ex) {
-	             JOptionPane.showMessageDialog(panel, ex.getMessage());
-	         }
-	     });
-	
-	     btnSearch.addActionListener(e -> {
-	         try {
-	             UserDto user = userService.searchByEmail(txtEmail.getText());
-	
-	             txtUserId.setText(String.valueOf(user.getUserId()));
-	             txtEmail.setText(user.getEmail());
-	             txtName.setText(user.getName());
-	
-	         } catch (Exception ex) {
-	             JOptionPane.showMessageDialog(panel, ex.getMessage());
-	         }
-	     });
-	
-	     btnUpdate.addActionListener(e -> {
-	         try {
-	             if (txtUserId.getText().trim().isEmpty()) {
-	                 JOptionPane.showMessageDialog(panel, "먼저 이메일로 회원을 조회하세요.");
-	                 return;
-	             }
-	
-	             UserDto user = new UserDto();
-	             user.setUserId(Integer.parseInt(txtUserId.getText()));
-	             user.setEmail(txtEmail.getText());
-	             user.setName(txtName.getText());
-	
-	             userService.update(user);
-	
-	             JOptionPane.showMessageDialog(panel, "회원수정 완료");
-	
-	         } catch (Exception ex) {
-	             JOptionPane.showMessageDialog(panel, ex.getMessage());
-	         }
-	     });
-	
-	     btnDelete.addActionListener(e -> {
-	         try {
-	             if (txtUserId.getText().trim().isEmpty()) {
-	                 JOptionPane.showMessageDialog(panel, "먼저 이메일로 회원을 조회하세요.");
-	                 return;
-	             }
-	
-	             int result = JOptionPane.showConfirmDialog(
-	                 panel,
-	                 "회원정보를 삭제하시겠습니까?",
-	                 "회원삭제",
-	                 JOptionPane.YES_NO_OPTION
-	             );
-	
-	             if (result != JOptionPane.YES_OPTION) {
-	                 return;
-	             }
-	
-	             userService.remove(Integer.parseInt(txtUserId.getText()));
-	
-	             txtUserId.setText("");
-	             txtEmail.setText("");
-	             txtName.setText("");
-	
-	             JOptionPane.showMessageDialog(panel, "회원삭제 완료");
-	
-	         } catch (Exception ex) {
-	             JOptionPane.showMessageDialog(panel, ex.getMessage());
-	         }
-	     });
-	
-	     btnClear.addActionListener(e -> {
-	         txtUserId.setText("");
-	         txtEmail.setText("");
-	         txtName.setText("");
-	     });
-	
-	     panel.add(topPanel, BorderLayout.NORTH);
-	     panel.add(centerPanel, BorderLayout.CENTER);
-	     panel.add(btnPanel, BorderLayout.SOUTH);
-	
-	     return panel;
-	 }
 
+    // ==========================================
+    // 4. [회원 관리] 패널 생성
+    // ==========================================
+    private static JPanel createUserPanel() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        UserService userService = new UserServiceImp();
+
+        JPanel topPanel = new JPanel(new BorderLayout());
+        JLabel titleLabel = new JLabel("회원 관리");
+        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+
+        JButton btnHome = new JButton("홈으로");
+        btnHome.addActionListener(e -> cardLayout.show(mainCardPanel, "HOME"));
+
+        topPanel.add(titleLabel, BorderLayout.WEST);
+        topPanel.add(btnHome, BorderLayout.EAST);
+
+        JPanel centerPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JTextField txtUserId = new JTextField(15);
+        JTextField txtEmail = new JTextField(20);
+        JTextField txtName = new JTextField(20);
+
+        txtUserId.setEnabled(false);
+
+        gbc.gridx = 0; gbc.gridy = 0;
+        centerPanel.add(new JLabel("회원 ID:"), gbc);
+        gbc.gridx = 1;
+        centerPanel.add(txtUserId, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        centerPanel.add(new JLabel("이메일:"), gbc);
+        gbc.gridx = 1;
+        centerPanel.add(txtEmail, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2;
+        centerPanel.add(new JLabel("이름:"), gbc);
+        gbc.gridx = 1;
+        centerPanel.add(txtName, gbc);
+
+        JPanel btnPanel = new JPanel(new FlowLayout());
+
+        JButton btnAdd = new JButton("회원등록");
+        JButton btnSearch = new JButton("이메일 조회");
+        JButton btnUpdate = new JButton("회원수정");
+        JButton btnDelete = new JButton("회원삭제");
+        JButton btnClear = new JButton("입력 초기화");
+
+        btnPanel.add(btnAdd);
+        btnPanel.add(btnSearch);
+        btnPanel.add(btnUpdate);
+        btnPanel.add(btnDelete);
+        btnPanel.add(btnClear);
+
+        btnAdd.addActionListener(e -> {
+            try {
+                UserDto user = new UserDto();
+                user.setEmail(txtEmail.getText());
+                user.setName(txtName.getText());
+                userService.add(user);
+                JOptionPane.showMessageDialog(panel, "회원등록 완료");
+                UserDto savedUser = userService.searchByEmail(user.getEmail());
+                txtUserId.setText(String.valueOf(savedUser.getUserId()));
+                txtEmail.setText(savedUser.getEmail());
+                txtName.setText(savedUser.getName());
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(panel, ex.getMessage());
+            }
+        });
+
+        btnSearch.addActionListener(e -> {
+            try {
+                UserDto user = userService.searchByEmail(txtEmail.getText());
+                txtUserId.setText(String.valueOf(user.getUserId()));
+                txtEmail.setText(user.getEmail());
+                txtName.setText(user.getName());
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(panel, ex.getMessage());
+            }
+        });
+
+        btnUpdate.addActionListener(e -> {
+            try {
+                if (txtUserId.getText().trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(panel, "먼저 이메일로 회원을 조회하세요.");
+                    return;
+                }
+                UserDto user = new UserDto();
+                user.setUserId(Integer.parseInt(txtUserId.getText()));
+                user.setEmail(txtEmail.getText());
+                user.setName(txtName.getText());
+                userService.update(user);
+                JOptionPane.showMessageDialog(panel, "회원수정 완료");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(panel, ex.getMessage());
+            }
+        });
+
+        btnDelete.addActionListener(e -> {
+            try {
+                if (txtUserId.getText().trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(panel, "먼저 이메일로 회원을 조회하세요.");
+                    return;
+                }
+                int result = JOptionPane.showConfirmDialog(panel, "회원정보를 삭제하시겠습니까?", "회원삭제", JOptionPane.YES_NO_OPTION);
+                if (result != JOptionPane.YES_OPTION) return;
+                userService.remove(Integer.parseInt(txtUserId.getText()));
+                txtUserId.setText(""); txtEmail.setText(""); txtName.setText("");
+                JOptionPane.showMessageDialog(panel, "회원삭제 완료");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(panel, ex.getMessage());
+            }
+        });
+
+        btnClear.addActionListener(e -> {
+            txtUserId.setText(""); txtEmail.setText(""); txtName.setText("");
+        });
+
+        panel.add(topPanel, BorderLayout.NORTH);
+        panel.add(centerPanel, BorderLayout.CENTER);
+        panel.add(btnPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    // ==========================================
+    // [기타] 준비 중 화면을 위한 공통 패널
+    // ==========================================
     private static JPanel createPlaceholderPanel(String message) {
         JPanel panel = new JPanel(new BorderLayout());
         JLabel label = new JLabel(message, JLabel.CENTER);
@@ -513,15 +543,5 @@ public class Main {
         JPanel btnPanel = new JPanel(); btnPanel.add(btnHome);
         panel.add(label, BorderLayout.CENTER); panel.add(btnPanel, BorderLayout.SOUTH);
         return panel;
-    }
-
-    private static JButton createButton(String text) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("맑은 고딕", Font.BOLD, 18));
-        button.setBackground(Color.WHITE);
-        button.setForeground(new Color(44, 62, 80)); 
-        button.setFocusPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return button;
     }
 }
