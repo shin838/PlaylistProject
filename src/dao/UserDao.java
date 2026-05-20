@@ -31,6 +31,34 @@ public class UserDao {
             dbutil.close(stmt, con);
         }
     }
+    
+    // user_id로 회원조회
+    public UserDto searchUserById(int userId) throws SQLException {
+        Connection con = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            con = dbutil.getConnection();
+
+            String sql = " SELECT user_id, email, name FROM user WHERE user_id = ? ";
+            stmt = con.prepareStatement(sql);
+            stmt.setInt(1, userId);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                UserDto user = new UserDto();
+                user.setUserId(rs.getInt("user_id"));
+                user.setEmail(rs.getString("email"));
+                user.setName(rs.getString("name"));
+                return user;
+            }
+
+            return null;
+        } finally {
+            dbutil.close(rs, stmt, con);
+        }
+    }
 
     // 이메일로 회원조회
     public UserDto searchUserByEmail(String email) throws SQLException {
