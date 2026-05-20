@@ -66,4 +66,38 @@ public class PlaylistMusicDao {
             dbutil.close(stmt, con);
         }
     }
+    
+    // 플레이리스트에 많이 추가된 노래 hot5 조회 (제목, 가수, 장르)
+    public List<MusicDto> getHot5Music() throws SQLException {
+        List<MusicDto> list = new ArrayList<>();
+        Connection con = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            con = dbutil.getConnection();
+
+            String sql = " SELECT m.title, m.artist, m.genre " +
+                         " FROM playlist_music pm JOIN music m ON pm.music_id = m.music_id " +
+                         " GROUP BY m.music_id, m.title, m.artist, m.genre " +
+                         " ORDER BY COUNT(*) DESC, m.music_id ASC " +
+                         " LIMIT 5 ";
+
+            stmt = con.prepareStatement(sql);
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                MusicDto music = new MusicDto();
+                music.setTitle(rs.getString("title"));
+                music.setArtist(rs.getString("artist"));
+                music.setGenre(rs.getString("genre"));
+
+                list.add(music);
+            }
+        } finally {
+            dbutil.close(rs, stmt, con);
+        }
+
+        return list;
+    }
 }
