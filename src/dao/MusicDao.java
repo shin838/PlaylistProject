@@ -74,17 +74,26 @@ public class MusicDao {
         PreparedStatement stmt = null;
         try {
             con = dbutil.getConnection();
-            // 연결된 플레이리스트 기록 먼저 삭제 (외래키 제약조건 방지)
+            
+            // 1. 연결된 플레이리스트 기록 먼저 삭제
             String delPmSql = " DELETE FROM playlist_music WHERE music_id = ? ";
             stmt = con.prepareStatement(delPmSql);
             stmt.setInt(1, musicId);
             stmt.executeUpdate();
             stmt.close();
 
+            // 2. 음악 삭제
             String sql = " DELETE FROM music WHERE music_id = ? ";
             stmt = con.prepareStatement(sql);
             stmt.setInt(1, musicId);
             stmt.executeUpdate();
+            stmt.close();
+
+            // 3. AUTO_INCREMENT 재정렬 (가장 큰 ID 값 + 1로 카운터 초기화)
+            String resetSql = " ALTER TABLE music AUTO_INCREMENT = 1 ";
+            stmt = con.prepareStatement(resetSql);
+            stmt.executeUpdate();
+            
         } finally {
             dbutil.close(stmt, con);
         }
