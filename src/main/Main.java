@@ -57,7 +57,7 @@ public class Main {
         mainCardPanel.add(createMusicPanel(), "MUSIC");
         mainCardPanel.add(createCombinedPlaylistPanel(), "PLAYLIST");
         mainCardPanel.add(createUserPanel(), "USER");
-        mainCardPanel.add(createPlaceholderPanel("🔥 HOT 5 화면 준비 중..."), "HOT5"); // HOT 5 화면 등록
+        mainCardPanel.add(createHot5Panel(), "HOT5");
 
         frame.add(mainCardPanel);
         frame.setVisible(true);
@@ -531,6 +531,75 @@ public class Main {
         return panel;
     }
 
+    // ==========================================
+    // 5. [HOT 5] 패널 생성
+    // ==========================================
+    private static JPanel createHot5Panel() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        PlaylistMusicDao pmDao = new PlaylistMusicDao();
+
+        JPanel topPanel = new JPanel(new BorderLayout());
+        JLabel titleLabel = new JLabel("HOT 5");
+        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+
+        JButton btnHome = new JButton("홈으로");
+        btnHome.addActionListener(e -> cardLayout.show(mainCardPanel, "HOME"));
+
+        topPanel.add(titleLabel, BorderLayout.WEST);
+        topPanel.add(btnHome, BorderLayout.EAST);
+
+        String[] cols = {"순위", "제목", "가수", "장르"};
+        DefaultTableModel tableModel = new DefaultTableModel(cols, 0) {
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        JTable table = new JTable(tableModel);
+        JScrollPane scrollPane = new JScrollPane(table);
+
+        JPanel bottomPanel = new JPanel(new FlowLayout());
+        JButton btnRefresh = new JButton("새로고침");
+        bottomPanel.add(btnRefresh);
+
+        Runnable loadHot5 = () -> {
+            try {
+                List<MusicDto> hotList = pmDao.getHot5Music();
+
+                tableModel.setRowCount(0);
+
+                int rank = 1;
+                for (MusicDto m : hotList) {
+                    tableModel.addRow(new Object[]{
+                        rank++,
+                        m.getTitle(),
+                        m.getArtist(),
+                        m.getGenre()
+                    });
+                }
+
+                if (hotList.isEmpty()) {
+                    JOptionPane.showMessageDialog(panel, "HOT 5 데이터가 없습니다.");
+                }
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(panel, ex.getMessage());
+            }
+        };
+
+        btnRefresh.addActionListener(e -> loadHot5.run());
+
+        panel.add(topPanel, BorderLayout.NORTH);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(bottomPanel, BorderLayout.SOUTH);
+
+        loadHot5.run();
+
+        return panel;
+    }
+    
     // ==========================================
     // [기타] 준비 중 화면을 위한 공통 패널
     // ==========================================
