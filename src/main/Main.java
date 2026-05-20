@@ -12,6 +12,9 @@ import dao.PlaylistDao;
 import dao.PlaylistMusicDao;
 import dto.MusicDto;
 import dto.PlaylistDto;
+import dto.UserDto;
+import service.UserService;
+import service.UserServiceImp;
 import util.DBUtil;
 
 public class Main {
@@ -47,7 +50,7 @@ public class Main {
         mainCardPanel.add(createHomePanel(), "HOME");
         mainCardPanel.add(createMusicPanel(), "MUSIC");
         mainCardPanel.add(createCombinedPlaylistPanel(), "PLAYLIST");
-        mainCardPanel.add(createPlaceholderPanel("👤 회원 관리 화면 준비 중..."), "USER");
+        mainCardPanel.add(createUserPanel(), "USER");
 
         frame.add(mainCardPanel);
         frame.setVisible(true);
@@ -337,6 +340,169 @@ public class Main {
 
         return panel;
     }
+    
+	 // ==========================================
+	 // 4. [회원 관리] 패널 생성
+	 // ==========================================
+	 private static JPanel createUserPanel() {
+	     JPanel panel = new JPanel(new BorderLayout(10, 10));
+	     panel.setBorder(new EmptyBorder(10, 10, 10, 10));
+	
+	     UserService userService = new UserServiceImp();
+	
+	     JPanel topPanel = new JPanel(new BorderLayout());
+	     JLabel titleLabel = new JLabel("회원 관리");
+	     titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+	
+	     JButton btnHome = new JButton("홈으로");
+	     btnHome.addActionListener(e -> cardLayout.show(mainCardPanel, "HOME"));
+	
+	     topPanel.add(titleLabel, BorderLayout.WEST);
+	     topPanel.add(btnHome, BorderLayout.EAST);
+	
+	     JPanel centerPanel = new JPanel(new GridBagLayout());
+	     GridBagConstraints gbc = new GridBagConstraints();
+	     gbc.insets = new Insets(8, 8, 8, 8);
+	     gbc.fill = GridBagConstraints.HORIZONTAL;
+	
+	     JTextField txtUserId = new JTextField(15);
+	     JTextField txtEmail = new JTextField(20);
+	     JTextField txtName = new JTextField(20);
+	
+	     txtUserId.setEnabled(false);
+	
+	     gbc.gridx = 0;
+	     gbc.gridy = 0;
+	     centerPanel.add(new JLabel("회원 ID:"), gbc);
+	
+	     gbc.gridx = 1;
+	     centerPanel.add(txtUserId, gbc);
+	
+	     gbc.gridx = 0;
+	     gbc.gridy = 1;
+	     centerPanel.add(new JLabel("이메일:"), gbc);
+	
+	     gbc.gridx = 1;
+	     centerPanel.add(txtEmail, gbc);
+	
+	     gbc.gridx = 0;
+	     gbc.gridy = 2;
+	     centerPanel.add(new JLabel("이름:"), gbc);
+	
+	     gbc.gridx = 1;
+	     centerPanel.add(txtName, gbc);
+	
+	     JPanel btnPanel = new JPanel(new FlowLayout());
+	
+	     JButton btnAdd = new JButton("회원등록");
+	     JButton btnSearch = new JButton("이메일 조회");
+	     JButton btnUpdate = new JButton("회원수정");
+	     JButton btnDelete = new JButton("회원삭제");
+	     JButton btnClear = new JButton("입력 초기화");
+	
+	     btnPanel.add(btnAdd);
+	     btnPanel.add(btnSearch);
+	     btnPanel.add(btnUpdate);
+	     btnPanel.add(btnDelete);
+	     btnPanel.add(btnClear);
+	
+	     btnAdd.addActionListener(e -> {
+	         try {
+	             UserDto user = new UserDto();
+	             user.setEmail(txtEmail.getText());
+	             user.setName(txtName.getText());
+	
+	             userService.add(user);
+	
+	             JOptionPane.showMessageDialog(panel, "회원등록 완료");
+	
+	             UserDto savedUser = userService.searchByEmail(user.getEmail());
+	             txtUserId.setText(String.valueOf(savedUser.getUserId()));
+	             txtEmail.setText(savedUser.getEmail());
+	             txtName.setText(savedUser.getName());
+	
+	         } catch (Exception ex) {
+	             JOptionPane.showMessageDialog(panel, ex.getMessage());
+	         }
+	     });
+	
+	     btnSearch.addActionListener(e -> {
+	         try {
+	             UserDto user = userService.searchByEmail(txtEmail.getText());
+	
+	             txtUserId.setText(String.valueOf(user.getUserId()));
+	             txtEmail.setText(user.getEmail());
+	             txtName.setText(user.getName());
+	
+	         } catch (Exception ex) {
+	             JOptionPane.showMessageDialog(panel, ex.getMessage());
+	         }
+	     });
+	
+	     btnUpdate.addActionListener(e -> {
+	         try {
+	             if (txtUserId.getText().trim().isEmpty()) {
+	                 JOptionPane.showMessageDialog(panel, "먼저 이메일로 회원을 조회하세요.");
+	                 return;
+	             }
+	
+	             UserDto user = new UserDto();
+	             user.setUserId(Integer.parseInt(txtUserId.getText()));
+	             user.setEmail(txtEmail.getText());
+	             user.setName(txtName.getText());
+	
+	             userService.update(user);
+	
+	             JOptionPane.showMessageDialog(panel, "회원수정 완료");
+	
+	         } catch (Exception ex) {
+	             JOptionPane.showMessageDialog(panel, ex.getMessage());
+	         }
+	     });
+	
+	     btnDelete.addActionListener(e -> {
+	         try {
+	             if (txtUserId.getText().trim().isEmpty()) {
+	                 JOptionPane.showMessageDialog(panel, "먼저 이메일로 회원을 조회하세요.");
+	                 return;
+	             }
+	
+	             int result = JOptionPane.showConfirmDialog(
+	                 panel,
+	                 "회원정보를 삭제하시겠습니까?",
+	                 "회원삭제",
+	                 JOptionPane.YES_NO_OPTION
+	             );
+	
+	             if (result != JOptionPane.YES_OPTION) {
+	                 return;
+	             }
+	
+	             userService.remove(Integer.parseInt(txtUserId.getText()));
+	
+	             txtUserId.setText("");
+	             txtEmail.setText("");
+	             txtName.setText("");
+	
+	             JOptionPane.showMessageDialog(panel, "회원삭제 완료");
+	
+	         } catch (Exception ex) {
+	             JOptionPane.showMessageDialog(panel, ex.getMessage());
+	         }
+	     });
+	
+	     btnClear.addActionListener(e -> {
+	         txtUserId.setText("");
+	         txtEmail.setText("");
+	         txtName.setText("");
+	     });
+	
+	     panel.add(topPanel, BorderLayout.NORTH);
+	     panel.add(centerPanel, BorderLayout.CENTER);
+	     panel.add(btnPanel, BorderLayout.SOUTH);
+	
+	     return panel;
+	 }
 
     private static JPanel createPlaceholderPanel(String message) {
         JPanel panel = new JPanel(new BorderLayout());
